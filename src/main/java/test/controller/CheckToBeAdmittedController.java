@@ -23,12 +23,16 @@ import java.util.Properties;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by jianan on 2021/05/12
  */
 @RestController
 public class CheckToBeAdmittedController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckToBeAdmittedController.class);
+
     //储存现有的组织部消息
     private static List<String> STATIC_ZZB_NEWS_LIST=new ArrayList<>();
     //储存新出现的组织部消息
@@ -56,8 +60,8 @@ public class CheckToBeAdmittedController {
     @RequestMapping(value="/start_check_to_be_admitted_task")
     @ResponseBody
     public void startCheckToBeAdmittedTask() {
-        checkToBeAdmittedTask();
-        System.out.println("start_check_to_be_admitted_task begin");
+        checkToBeAdmittedTask(true);
+        LOGGER.info("start_check_to_be_admitted_task begin");
         ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -68,15 +72,15 @@ public class CheckToBeAdmittedController {
             @Override
             public void run() {
                 try {
-                    checkToBeAdmittedTask();
+                    checkToBeAdmittedTask(false);
                 } catch (Exception e) {
-                    System.out.println("start_check_to_be_admitted_task failed");
+                    LOGGER.info("start_check_to_be_admitted_task failed");
                 }
             }
         }, 1, 1, TimeUnit.MINUTES);
     }
 
-    private void checkToBeAdmittedTask(){
+    private void checkToBeAdmittedTask(boolean firstFlag){
         //首先获取
         Document doc= null;
         try {
@@ -113,12 +117,16 @@ public class CheckToBeAdmittedController {
             }
             //有新的新闻，触发发送邮件
             if(hasNewNews || NEW_STATIC_ZZB_NEWS_LIST.size()!=0){
-                sendEmail(NEW_STATIC_ZZB_NEWS_LIST.get(0));
+                LOGGER.info("has New");
+                if(!firstFlag){
+                    LOGGER.info("needSend:"+NEW_STATIC_ZZB_NEWS_LIST.get(0));
+                    sendEmail(NEW_STATIC_ZZB_NEWS_LIST.get(0));
+                }
+            }else{
+                LOGGER.info("no New");
             }
-            System.out.println("check finished");
             NEW_STATIC_ZZB_NEWS_LIST=new ArrayList<>();
         }
-
     }
     
     private  void sendEmail(String newsTitle){
@@ -181,7 +189,7 @@ public class CheckToBeAdmittedController {
 
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("错误");
+            LOGGER.error("错误");
         }
     }
 }
