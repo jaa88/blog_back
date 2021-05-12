@@ -38,7 +38,7 @@ public class CheckToBeAdmittedController {
     //储存新出现的组织部消息
     private static List<String> NEW_STATIC_ZZB_NEWS_LIST=new ArrayList<>();
     //发送的邮箱
-    private static List<String> SEND_EMAIL_LIST=new ArrayList<>(Arrays.asList("1170271773@qq.com"));
+    private static List<String> SEND_EMAIL_LIST=new ArrayList<>(Arrays.asList("1170271773@qq.com","358205821@qq.com"));
 
     /**
      * 添加需要接受消息的邮箱
